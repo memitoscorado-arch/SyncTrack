@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SyncTrack - Portal de Multas (SIMULADO)</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background: #f2f2f2; margin: 0; padding: 0 0 40px; }
+  header { background: #14213d; color: white; padding: 20px 24px; }
+  header h1 { margin: 0; font-size: 22px; }
+  header p { margin: 4px 0 0; font-size: 13px; color: #cbd5e1; }
+  .disclaimer {
+    background: #fde68a; color: #7c4a03; text-align: center; font-weight: bold;
+    padding: 10px; font-size: 14px; border-bottom: 2px solid #b45309;
+  }
+  main { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+  section { background: white; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  h2 { font-size: 16px; color: #14213d; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
+  th { color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  .plate { font-family: 'Courier New', monospace; font-weight: bold; background: #e2e8f0;
+           padding: 2px 8px; border-radius: 4px; }
+  .violation { color: #b91c1c; font-weight: bold; }
+  .evidence-thumb { height: 48px; border-radius: 4px; border: 1px solid #ddd; }
+  .empty { color: #94a3b8; font-style: italic; padding: 12px 0; }
+  .notif { border-left: 3px solid #14213d; padding: 8px 12px; margin-bottom: 8px; background: #f8fafc;
+           font-size: 13px; white-space: pre-wrap; }
+  .notif .channel { text-transform: uppercase; font-weight: bold; color: #14213d; }
+</style>
+</head>
+<body>
+<div class="disclaimer">
+  SIMULADO — Prototipo de hackathon. No es una entidad gubernamental ni un sistema oficial de multas.
+</div>
+<header>
+  <h1>SyncTrack</h1>
+  <p>Portal de multas de transito (prototipo) — deteccion de exceso de velocidad por video</p>
+</header>
+<main>
+  <section>
+    <h2>Multas registradas ({{ fines|length }})</h2>
+    {% if fines %}
+    <table>
+      <thead>
+        <tr>
+          <th>Placa</th><th>Fecha/hora</th><th>Velocidad</th><th>Limite</th><th>Multa</th><th>Evidencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fine in fines %}
+        <tr>
+          <td><span class="plate">{{ fine.plate }}</span></td>
+          <td>{{ fine.timestamp }}</td>
+          <td class="violation">{{ "%.0f"|format(fine.speed_kmh) }} km/h</td>
+          <td>{{ "%.0f"|format(fine.limit_kmh) }} km/h</td>
+          <td>Q{{ "%.2f"|format(fine.fine_amount_gtq) }}</td>
+          <td>
+            {% if fine.evidence_path %}
+            <img class="evidence-thumb" src="/evidence/{{ fine.evidence_path }}">
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">Aun no hay multas registradas.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Notificaciones simuladas ({{ notifications|length }})</h2>
+    {% if notifications %}
+      {% for n in notifications %}
+      <div class="notif">
+        <div><span class="channel">{{ n.channel }}</span> &rarr; {{ n.to }}</div>
+        {% if n.subject %}<div><strong>{{ n.subject }}</strong></div>{% endif %}
+        <div>{{ n.body }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <p class="empty">Aun no hay notificaciones generadas.</p>
+    {% endif %}
+  </section>
+</main>
+</body>
+</html>

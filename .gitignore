@@ -2,6 +2,7 @@
 # of real people filmed on a public street — never commit these.
 data/videos/raw/
 data/videos/samples/
+data/evidence/
 
 # Python
 __pycache__/
@@ -13,3 +14,9 @@ venv/
 # Model weights (downloaded, not authored)
 *.pt
 *.onnx
+
+# Secrets -- never commit real credentials
+.env
+
+# User-uploaded demo videos
+data/uploads/
