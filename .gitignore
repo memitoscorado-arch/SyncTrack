@@ -1,0 +1,15 @@
+# Raw footage and extracted frames contain real, identifiable license plates
+# of real people filmed on a public street — never commit these.
+data/videos/raw/
+data/videos/samples/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Model weights (downloaded, not authored)
+*.pt
+*.onnx
