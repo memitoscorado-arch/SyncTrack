@@ -33,20 +33,19 @@ class PlateReading:
 
 
 def _preprocess_variants(crop):
-    """Yield a few upscaled/denoised variants of a plate crop.
+    """Yield a couple of upscaled/denoised variants of a plate crop.
 
     Real street footage plates are often only a few pixels tall — a single
-    fixed preprocessing rarely works, so we try a couple of scales and keep
-    whichever OCR reading scores highest. Cheap relative to a live demo,
-    since crops are small.
+    fixed preprocessing rarely works. Kept to 2 variants (not more) since
+    each runs a full EasyOCR pass -- OCR is the slowest step in the live
+    demo pipeline.
     """
-    for scale in (2, 4):
-        up = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-        gray = cv2.cvtColor(up, cv2.COLOR_BGR2GRAY)
-        gray = cv2.bilateralFilter(gray, 7, 50, 50)
-        yield up
-        _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        yield otsu
+    up = cv2.resize(crop, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+    gray = cv2.cvtColor(up, cv2.COLOR_BGR2GRAY)
+    gray = cv2.bilateralFilter(gray, 7, 50, 50)
+    yield up
+    _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    yield otsu
 
 
 def read_plate(crop):

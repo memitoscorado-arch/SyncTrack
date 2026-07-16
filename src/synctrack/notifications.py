@@ -10,6 +10,7 @@ never hardcoded, never committed.
 """
 
 import os
+import random
 import smtplib
 import ssl
 from dataclasses import dataclass
@@ -24,16 +25,35 @@ GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 # send to; sending anywhere else would risk emailing an uninvolved stranger.
 DEMO_NOTIFY_EMAIL = os.environ.get("DEMO_NOTIFY_EMAIL", "memitoscorado@gmail.com")
 
+# Fake owner names -- this system has no real plate-to-owner registry access
+# (that data sits with SAT/RENAP via the impuesto de circulacion, not with
+# us). Names below are randomly assigned per plate purely to make the demo
+# notification read naturally; they are NOT real people.
+_FAKE_FIRST_NAMES = ["Carlos", "Maria", "Luis", "Ana", "Jose", "Andrea", "Miguel", "Sofia", "Pedro", "Gabriela"]
+_FAKE_LAST_NAMES = ["Garcia", "Lopez", "Morales", "Hernandez", "Ramirez", "Gonzalez", "Perez", "Cruz", "Rodas", "Estrada"]
+
+
+def fake_owner_name(plate):
+    """Deterministic per-plate fake name (same plate -> same name within a run)."""
+    rng = random.Random(plate)
+    return f"{rng.choice(_FAKE_FIRST_NAMES)} {rng.choice(_FAKE_LAST_NAMES)}"
+
+
 SMS_TEMPLATE = (
-    "[SIMULADO] SyncTrack: se detecto tu vehiculo placa {plate} circulando a "
-    "{speed:.0f} km/h en una via con limite de {limit:.0f} km/h el {timestamp}. "
+    "[SIMULADO] SyncTrack: Estimado/a {owner_name}, se detecto tu vehiculo placa {plate} "
+    "circulando a {speed:.0f} km/h en una via con limite de {limit:.0f} km/h el {timestamp}. "
     "Multa simulada: Q{amount:.2f}. Mensaje de PROTOTIPO, no es una notificacion oficial."
 )
 
 EMAIL_SUBJECT_TEMPLATE = "[SIMULADO] Notificacion de infraccion de transito - Placa {plate}"
 
-EMAIL_BODY_TEMPLATE = """Este es un mensaje SIMULADO generado por un prototipo de hackathon (SyncTrack).
+EMAIL_BODY_TEMPLATE = """Estimado/a {owner_name}:
+
+Este es un mensaje SIMULADO generado por un prototipo de hackathon (SyncTrack).
 No es una notificacion oficial ni proviene de una entidad gubernamental real.
+(Nota: este sistema no tiene acceso real a datos de titulares de placas --
+ese cruce de informacion solo lo tiene una entidad como la SAT/RENAP via el
+impuesto de circulacion. El nombre de arriba es simulado.)
 
 Placa: {plate}
 Velocidad detectada: {speed:.0f} km/h

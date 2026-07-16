@@ -27,6 +27,15 @@
   .notif { border-left: 3px solid #14213d; padding: 8px 12px; margin-bottom: 8px; background: #f8fafc;
            font-size: 13px; white-space: pre-wrap; }
   .notif .channel { text-transform: uppercase; font-weight: bold; color: #14213d; }
+  .upload-form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .upload-form input[type="number"] { width: 80px; padding: 4px; }
+  .upload-form button { background: #14213d; color: white; border: none; padding: 8px 16px;
+                         border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .live-badge { display: inline-block; background: #b91c1c; color: white; font-size: 11px;
+                font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+                animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  video { width: 100%; max-width: 640px; border-radius: 6px; background: black; display: block; }
 </style>
 </head>
 <body>
@@ -38,6 +47,35 @@
   <p>Portal de multas de transito (prototipo) — deteccion de exceso de velocidad por video</p>
 </header>
 <main>
+  <section>
+    <h2>Cargar video de la calle</h2>
+    <form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept="video/*" required>
+      <label>Limite (km/h): <input type="number" name="limit_kmh" value="30" step="1"></label>
+      <button type="submit">Analizar video</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Camara en vivo</h2>
+    <p><small>Fuente: indice de webcam (ej. 0) o URL de stream (ej. iPhone como camara IP en la
+       misma red WiFi via una app tipo Iriun Webcam / EpocCam -- Windows no reconoce el iPhone
+       como webcam de forma nativa).</small></p>
+    <form class="upload-form" action="/live-view" method="get">
+      <label>Fuente: <input type="text" name="source" value="0"></label>
+      <label>Limite (km/h): <input type="number" name="limit_kmh" value="30" step="1"></label>
+      <button type="submit">Ver en vivo</button>
+    </form>
+  </section>
+
+  {% if video_url %}
+  <section>
+    <h2>Camara del corredor{% if processing_status == "procesando..." %}<span class="live-badge">EN VIVO</span>{% endif %}</h2>
+    <video controls autoplay loop muted src="{{ video_url }}"></video>
+    <p><small>Estado del analisis: {{ processing_status }}</small></p>
+  </section>
+  {% endif %}
+
   <section>
     <h2>Multas registradas ({{ fines|length }})</h2>
     {% if fines %}
