@@ -58,12 +58,12 @@
 
   <section>
     <h2>Camara en vivo</h2>
-    <p><small>Fuente: indice de webcam (ej. 0) o URL de stream (ej. iPhone como camara IP en la
-       misma red WiFi via una app tipo Iriun Webcam / EpocCam -- Windows no reconoce el iPhone
-       como webcam de forma nativa).</small></p>
+    <p><small>Fuente: URL de stream (DroidCam/IP Webcam en el celular, misma red WiFi) o indice
+       de webcam de esta compu (0, 1, ...). Para cambiar entre camara frontal/trasera del celular,
+       usa el boton de la app en el telefono -- no se controla desde aqui.</small></p>
     <form class="upload-form" action="/live-view" method="get">
-      <label>Fuente: <input type="text" name="source" value="0"></label>
-      <label>Limite (km/h): <input type="number" name="limit_kmh" value="30" step="1"></label>
+      <label>Fuente: <input type="text" name="source" value="http://192.168.6.38:4747/video" size="36"></label>
+      <label>Limite (km/h): <input type="number" name="limit_kmh" value="25" step="1"></label>
       <button type="submit">Ver en vivo</button>
     </form>
   </section>
