@@ -69,28 +69,26 @@ Excluido explícitamente. Documentado para prevenir scope creep durante el hacka
 
 ## Traceability
 
-Se completa durante la creación del roadmap.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INGEST-01 | TBD | Pending |
-| DETECT-01 | TBD | Pending |
-| DETECT-02 | TBD | Pending |
-| PLATE-01 | TBD | Pending |
-| PLATE-02 | TBD | Pending |
-| SPEED-01 | TBD | Pending |
-| SPEED-02 | TBD | Pending |
-| FINE-01 | TBD | Pending |
-| NOTIF-01 | TBD | Pending |
-| PORTAL-01 | TBD | Pending |
-| PORTAL-02 | TBD | Pending |
-| DEMO-01 | TBD | Pending |
+| INGEST-01 | Phase 1 | Pending |
+| DETECT-01 | Phase 1 | Pending |
+| DETECT-02 | Phase 1 | Pending |
+| PLATE-01 | Phase 2 | Pending |
+| PLATE-02 | Phase 2 | Pending |
+| SPEED-01 | Phase 3 | Pending |
+| SPEED-02 | Phase 3 | Pending |
+| FINE-01 | Phase 4 | Pending |
+| NOTIF-01 | Phase 4 | Pending |
+| PORTAL-01 | Phase 4 | Pending |
+| PORTAL-02 | Phase 4 | Pending |
+| DEMO-01 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
-- Mapped to phases: 0 (pendiente de roadmap)
-- Unmapped: 12 ⚠️ (se resuelve en el siguiente paso)
+- Mapped to phases: 12/12 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-16*
-*Last updated: 2026-07-16 after initial definition*
+*Last updated: 2026-07-16 after roadmap creation (traceability mapped to Phases 1-5)*
