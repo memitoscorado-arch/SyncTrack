@@ -1,5 +1,6 @@
 import shutil
 import sys
+import urllib.parse
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, UploadFile
@@ -53,25 +54,19 @@ def api_fines():
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...), limit_kmh: float = Form(30.0)):
-    """Accept an uploaded clip, save it, "play it back" (served statically
-    for the <video> tag) while running the full detection pipeline against
-    it -- framed as watching the corridor "live" for the demo."""
+    """Accept an uploaded clip, save it, then point the "Camara del
+    corredor" preview at the SAME annotated MJPEG stream used for the live
+    camera (/live) -- one single pass draws the boxes/lines/speed/plate AND
+    registers fines, instead of processing the file twice."""
     global last_video_url, processing_status
 
     dest = UPLOAD_DIR / file.filename
     with dest.open("wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    last_video_url = f"/uploads/{file.filename}"
-    processing_status = "procesando..."
-
-    from scripts.run_pipeline import run as run_pipeline
-
-    try:
-        run_pipeline(str(dest), limit_kmh=limit_kmh)
-        processing_status = "completado"
-    except Exception as exc:  # noqa: BLE001 -- surface, don't crash the portal
-        processing_status = f"error: {exc}"
+    source_param = urllib.parse.quote(str(dest), safe="")
+    last_video_url = f"/live?source={source_param}&limit_kmh={limit_kmh}"
+    processing_status = "en vivo (procesando este video)"
 
     return RedirectResponse(url="/", status_code=303)
 

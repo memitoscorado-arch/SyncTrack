@@ -2,6 +2,7 @@
 # of real people filmed on a public street — never commit these.
 data/videos/raw/
 data/videos/samples/
+data/videos/outputs/
 data/evidence/
 
 # Python
