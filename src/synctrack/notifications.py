@@ -75,6 +75,7 @@ class MockNotification:
 
 def generate_notifications(fine, phone="+502 5555-0000", email="titular@ejemplo.com"):
     fmt_kwargs = dict(
+        owner_name=fake_owner_name(fine.plate),
         plate=fine.plate,
         speed=fine.speed_kmh,
         limit=fine.limit_kmh,
