@@ -1,0 +1,6 @@
+fastapi[standard]==0.139.2
+ultralytics==8.4.96
+easyocr==1.7.2
+opencv-python==5.0.0.93
+numpy
+pillow
