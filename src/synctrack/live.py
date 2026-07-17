@@ -50,8 +50,26 @@ def generate_mjpeg(source, distance_m=12.0, limit_kmh=30.0, line1_y=None, line2_
     best_plate_per_track = {}
     ocr_attempts = {}
     fined_tracks = set()
-    frame_idx = 0
 
+    try:
+        yield from _process_frames(
+            video_source, tracker, estimator, l1, l2, limit_kmh, writer, progress,
+            best_plate_per_track, ocr_attempts, fined_tracks,
+        )
+    finally:
+        # MUST run even if the client disconnects mid-stream (e.g. navigates
+        # away or starts a new upload before this one finishes) -- otherwise
+        # the mp4 never gets its trailer/moov atom written and the
+        # downloaded file is corrupt ("moov atom not found", unplayable).
+        if writer is not None:
+            writer.release()
+        if progress is not None:
+            progress["done"] = True
+
+
+def _process_frames(video_source, tracker, estimator, l1, l2, limit_kmh, writer, progress,
+                     best_plate_per_track, ocr_attempts, fined_tracks):
+    frame_idx = 0
     for frame in video_source.frames():
         cv2.line(frame, (0, l1), (video_source.width, l1), (255, 0, 0), 1)
         cv2.line(frame, (0, l2), (video_source.width, l2), (255, 0, 0), 1)
@@ -124,8 +142,3 @@ def generate_mjpeg(source, distance_m=12.0, limit_kmh=30.0, line1_y=None, line2_
         frame_idx += 1
         if progress is not None:
             progress["current"] = frame_idx
-
-    if writer is not None:
-        writer.release()
-    if progress is not None:
-        progress["done"] = True
