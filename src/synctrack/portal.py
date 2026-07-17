@@ -4,7 +4,7 @@ import urllib.parse
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 
@@ -32,6 +32,7 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 registry = FineRegistry()
 notifications_log: list[MockNotification] = []
 last_video_url = None
+last_download_path = None
 processing_status = None
 
 
@@ -43,8 +44,16 @@ def index():
         notifications=list(reversed(notifications_log)),
         video_url=last_video_url,
         processing_status=processing_status,
+        can_download=last_download_path is not None,
     )
     return HTMLResponse(html)
+
+
+@app.get("/download")
+def download_video():
+    return FileResponse(
+        last_download_path, media_type="video/mp4", filename="video_analizado.mp4"
+    )
 
 
 @app.get("/api/fines")
@@ -58,7 +67,7 @@ async def upload_video(file: UploadFile = File(...), limit_kmh: float = Form(30.
     corredor" preview at the SAME annotated MJPEG stream used for the live
     camera (/live) -- one single pass draws the boxes/lines/speed/plate AND
     registers fines, instead of processing the file twice."""
-    global last_video_url, processing_status
+    global last_video_url, last_download_path, processing_status
 
     dest = UPLOAD_DIR / file.filename
     with dest.open("wb") as f:
@@ -66,6 +75,7 @@ async def upload_video(file: UploadFile = File(...), limit_kmh: float = Form(30.
 
     source_param = urllib.parse.quote(str(dest), safe="")
     last_video_url = f"/live?source={source_param}&limit_kmh={limit_kmh}"
+    last_download_path = str(dest)
     processing_status = "en vivo (procesando este video)"
 
     return RedirectResponse(url="/", status_code=303)

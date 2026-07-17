@@ -73,6 +73,9 @@
     <h2>Camara del corredor<span class="live-badge">EN VIVO</span></h2>
     <img src="{{ video_url }}" style="width:100%;max-width:640px;border-radius:6px;background:#000">
     <p><small>Estado: {{ processing_status }} -- cajas verdes/rojas = deteccion, lineas azules = calibracion de velocidad</small></p>
+    {% if can_download %}
+    <a href="/download" download><button type="button">Descargar video analizado</button></a>
+    {% endif %}
   </section>
   {% endif %}
 
