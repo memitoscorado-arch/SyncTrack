@@ -102,3 +102,26 @@ def live_stream(source: str = "0", limit_kmh: float = 30.0, distance_m: float = 
         generate_mjpeg(source, distance_m=distance_m, limit_kmh=limit_kmh),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
+
+
+@app.get("/replay")
+def replay_stream(path: str):
+    """Re-stream an ALREADY-ANNOTATED video file as MJPEG (no reprocessing --
+    just read + re-encode frames). Browsers can't reliably play the mp4v
+    codec OpenCV writes directly in a <video> tag; a JPEG-per-frame stream
+    always works, same trick as /live."""
+    import cv2
+
+    def frames():
+        while True:
+            cap = cv2.VideoCapture(path)
+            while True:
+                ok, frame = cap.read()
+                if not ok:
+                    break
+                ok2, jpeg = cv2.imencode(".jpg", frame)
+                if ok2:
+                    yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg.tobytes() + b"\r\n")
+            cap.release()
+
+    return StreamingResponse(frames(), media_type="multipart/x-mixed-replace; boundary=frame")
