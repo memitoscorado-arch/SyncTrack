@@ -69,7 +69,12 @@ def download_video():
 
 @app.get("/api/fines")
 def api_fines():
-    return [fine.__dict__ for fine in registry.fines]
+    return [fine.__dict__ for fine in reversed(registry.fines)]
+
+
+@app.get("/api/notifications")
+def api_notifications():
+    return [n.__dict__ for n in reversed(notifications_log)]
 
 
 @app.post("/upload")

@@ -99,7 +99,8 @@
   {% endif %}
 
   <section>
-    <h2>Multas registradas ({{ fines|length }})</h2>
+    <h2>Multas registradas (<span id="fines-count">{{ fines|length }}</span>)</h2>
+    <div id="fines-wrap">
     {% if fines %}
     <table>
       <thead>
@@ -107,7 +108,7 @@
           <th>Placa</th><th>Fecha/hora</th><th>Velocidad</th><th>Limite</th><th>Multa</th><th>Evidencia</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="fines-tbody">
         {% for fine in fines %}
         <tr>
           <td><span class="plate">{{ fine.plate }}</span></td>
@@ -127,10 +128,12 @@
     {% else %}
     <p class="empty">Aun no hay multas registradas.</p>
     {% endif %}
+    </div>
   </section>
 
   <section>
-    <h2>Notificaciones simuladas ({{ notifications|length }})</h2>
+    <h2>Notificaciones simuladas (<span id="notif-count">{{ notifications|length }}</span>)</h2>
+    <div id="notif-wrap">
     {% if notifications %}
       {% for n in notifications %}
       <div class="notif">
@@ -142,7 +145,57 @@
     {% else %}
     <p class="empty">Aun no hay notificaciones generadas.</p>
     {% endif %}
+    </div>
   </section>
 </main>
+<script>
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : s;
+    return d.innerHTML;
+  }
+
+  function renderFines(fines) {
+    document.getElementById('fines-count').textContent = fines.length;
+    const wrap = document.getElementById('fines-wrap');
+    if (!fines.length) {
+      wrap.innerHTML = '<p class="empty">Aun no hay multas registradas.</p>';
+      return;
+    }
+    let rows = fines.map(f => `
+      <tr>
+        <td><span class="plate">${esc(f.plate)}</span></td>
+        <td>${esc(f.timestamp)}</td>
+        <td class="violation">${Math.round(f.speed_kmh)} km/h</td>
+        <td>${Math.round(f.limit_kmh)} km/h</td>
+        <td>Q${f.fine_amount_gtq.toFixed(2)}</td>
+        <td>${f.evidence_path ? `<img class="evidence-thumb" src="/evidence/${esc(f.evidence_path)}">` : '&mdash;'}</td>
+      </tr>`).join('');
+    wrap.innerHTML = `<table><thead><tr>
+      <th>Placa</th><th>Fecha/hora</th><th>Velocidad</th><th>Limite</th><th>Multa</th><th>Evidencia</th>
+      </tr></thead><tbody id="fines-tbody">${rows}</tbody></table>`;
+  }
+
+  function renderNotifications(notifs) {
+    document.getElementById('notif-count').textContent = notifs.length;
+    const wrap = document.getElementById('notif-wrap');
+    if (!notifs.length) {
+      wrap.innerHTML = '<p class="empty">Aun no hay notificaciones generadas.</p>';
+      return;
+    }
+    wrap.innerHTML = notifs.map(n => `
+      <div class="notif">
+        <div><span class="channel">${esc(n.channel)}</span> &rarr; ${esc(n.to)}</div>
+        ${n.subject ? `<div><strong>${esc(n.subject)}</strong></div>` : ''}
+        <div>${esc(n.body)}</div>
+      </div>`).join('');
+  }
+
+  function pollData() {
+    fetch('/api/fines').then(r => r.json()).then(renderFines).catch(() => {});
+    fetch('/api/notifications').then(r => r.json()).then(renderNotifications).catch(() => {});
+  }
+  setInterval(pollData, 2000);
+</script>
 </body>
 </html>
