@@ -72,11 +72,30 @@
   <section>
     <h2>Camara del corredor<span class="live-badge">EN VIVO</span></h2>
     <img src="{{ video_url }}" style="width:100%;max-width:640px;border-radius:6px;background:#000">
-    <p><small>Estado: {{ processing_status }} -- cajas verdes/rojas = deteccion, lineas azules = calibracion de velocidad</small></p>
-    {% if can_download %}
-    <a href="/download" download><button type="button">Descargar video analizado</button></a>
-    {% endif %}
+    <p><small>Cajas verdes/rojas = deteccion, lineas azules = calibracion de velocidad</small></p>
+    <p id="progress-text"><small>Progreso: <span id="progress-percent">--</span>%</small></p>
+    <div id="download-slot">
+      {% if can_download %}
+      <a href="/download" download><button type="button">Descargar video analizado</button></a>
+      {% endif %}
+    </div>
   </section>
+  <script>
+    (function poll() {
+      fetch('/progress').then(r => r.json()).then(d => {
+        document.getElementById('progress-percent').textContent = d.percent;
+        if (d.done) {
+          document.getElementById('progress-text').innerHTML = '<small>Analisis completado (100%)</small>';
+          if (!document.querySelector('#download-slot a')) {
+            document.getElementById('download-slot').innerHTML =
+              '<a href="/download" download><button type="button">Descargar video analizado</button></a>';
+          }
+        } else {
+          setTimeout(poll, 1000);
+        }
+      }).catch(() => setTimeout(poll, 2000));
+    })();
+  </script>
   {% endif %}
 
   <section>

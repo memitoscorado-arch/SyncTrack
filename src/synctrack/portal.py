@@ -34,6 +34,7 @@ notifications_log: list[MockNotification] = []
 last_video_url = None
 last_download_path = None
 processing_status = None
+progress = {"current": 0, "total": 0, "done": True}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -44,13 +45,23 @@ def index():
         notifications=list(reversed(notifications_log)),
         video_url=last_video_url,
         processing_status=processing_status,
-        can_download=last_download_path is not None,
+        can_download=last_download_path is not None and progress["done"],
     )
     return HTMLResponse(html)
 
 
+@app.get("/progress")
+def get_progress():
+    total = progress["total"]
+    current = progress["current"]
+    percent = int(current * 100 / total) if total else 0
+    return {"current": current, "total": total, "percent": percent, "done": progress["done"]}
+
+
 @app.get("/download")
 def download_video():
+    if not (last_download_path and progress["done"]):
+        return HTMLResponse("Todavia se esta procesando, espera a que termine.", status_code=409)
     return FileResponse(
         last_download_path, media_type="video/mp4", filename="video_analizado.mp4"
     )
@@ -73,10 +84,15 @@ async def upload_video(file: UploadFile = File(...), limit_kmh: float = Form(30.
     with dest.open("wb") as f:
         shutil.copyfileobj(file.file, f)
 
+    output_path = UPLOAD_DIR / f"analizado_{file.filename}.mp4"
     source_param = urllib.parse.quote(str(dest), safe="")
-    last_video_url = f"/live?source={source_param}&limit_kmh={limit_kmh}"
-    last_download_path = str(dest)
-    processing_status = "en vivo (procesando este video)"
+    output_param = urllib.parse.quote(str(output_path), safe="")
+    last_video_url = f"/live?source={source_param}&limit_kmh={limit_kmh}&output={output_param}"
+    last_download_path = str(output_path)
+    processing_status = "procesando..."
+    progress["current"] = 0
+    progress["total"] = 0
+    progress["done"] = False
 
     return RedirectResponse(url="/", status_code=303)
 
@@ -105,11 +121,14 @@ def live_view(source: str = "0", limit_kmh: float = 30.0, distance_m: float = 12
 
 
 @app.get("/live")
-def live_stream(source: str = "0", limit_kmh: float = 30.0, distance_m: float = 12.0):
+def live_stream(source: str = "0", limit_kmh: float = 30.0, distance_m: float = 12.0, output: str = None):
     from synctrack.live import generate_mjpeg
 
     return StreamingResponse(
-        generate_mjpeg(source, distance_m=distance_m, limit_kmh=limit_kmh),
+        generate_mjpeg(
+            source, distance_m=distance_m, limit_kmh=limit_kmh,
+            progress=progress if output else None, output_path=output,
+        ),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
 

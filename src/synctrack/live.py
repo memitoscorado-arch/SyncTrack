@@ -22,10 +22,26 @@ MAX_OCR_ATTEMPTS_PER_TRACK = 1
 EVIDENCE_PADDING_PX = 25
 
 
-def generate_mjpeg(source, distance_m=12.0, limit_kmh=30.0, line1_y=None, line2_y=None):
+def generate_mjpeg(source, distance_m=12.0, limit_kmh=30.0, line1_y=None, line2_y=None,
+                    progress=None, output_path=None):
+    """progress: optional dict updated in-place with current/total/done, so
+    the portal can show a percentage while this streams. output_path: if
+    given, every annotated frame is also saved to disk, so the finished
+    file is downloadable once done=True."""
     video_source = VideoSource(source)
     l1 = line1_y if line1_y is not None else int(video_source.height * 0.35)
     l2 = line2_y if line2_y is not None else int(video_source.height * 0.75)
+
+    writer = None
+    if output_path:
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        writer = cv2.VideoWriter(str(output_path), fourcc, video_source.fps or 25.0,
+                                  (video_source.width, video_source.height))
+
+    if progress is not None:
+        progress["current"] = 0
+        progress["total"] = video_source.frame_count
+        progress["done"] = False
 
     cal = SpeedCalibration(line1_y=l1, line2_y=l2, distance_m=distance_m, fps=video_source.fps)
     estimator = SpeedEstimator(cal)
@@ -99,7 +115,17 @@ def generate_mjpeg(source, distance_m=12.0, limit_kmh=30.0, line1_y=None, line2_
                 2,
             )
 
+        if writer is not None:
+            writer.write(frame)
+
         ok, jpeg = cv2.imencode(".jpg", frame)
         if ok:
             yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg.tobytes() + b"\r\n")
         frame_idx += 1
+        if progress is not None:
+            progress["current"] = frame_idx
+
+    if writer is not None:
+        writer.release()
+    if progress is not None:
+        progress["done"] = True

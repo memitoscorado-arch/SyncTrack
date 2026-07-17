@@ -42,7 +42,13 @@ def main():
     parser.add_argument("--annotated-output", default=None)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=None, help="Default: auto-pick a free port")
+    parser.add_argument("--seed", action="store_true", help="Preload fines/notifications from a real prior run")
     args = parser.parse_args()
+
+    if args.seed:
+        from synctrack.seed import seed_real_results
+
+        seed_real_results()
 
     if args.video:
         run_pipeline(
